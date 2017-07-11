@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="initial-scale=1, maximum-scale=1">
+	<link rel="stylesheet" type="text/css" href="css/global_size.css">
+	<title>ChatAn</title>
+</head>
+<style type="text/css">
+	html,body{
+		overflow: hidden;
+	}
+	p{ background:red;
+</style>
+<body>
+	<div style="overflow-y: hidden">
+		<iframe id='iframe' marginheight="0" marginwidth="0" src="main.html"></iframe>
+	</div>
+</body>
+<script type="text/javascript" src='script/deal_message.js'></script>
+<script type="text/javascript">
+	function setIframe()
+	{
+		var middle=document.getElementById('iframe');
+		var middleParent=middle.parentNode;
+		//alert(window.innerHeight+" "+top.clientHeight+" "+bottom.clientHeight);
+		var height=window.innerHeight;
+		middle.setAttribute("height",height);
+		middleParent.style.height=height+'px';
+		var width=window.innerWidth;
+		middle.setAttribute("width",width);
+	}
+	window.onresize=function(){
+		setIframe();
+	}
+
+	//websocket连接后台
+	var ws=null;
+	//获取用户信息
+	// window.localStorage.user_info=
+	// '{"user_id":"19","user_account":"1","user_name":"\u5c0f\u4e00","user_password":"1","login_date":"2017-04-29 02:07:09","user_info":null}';
+	var user_info=JSON.parse(window.localStorage.user_info);
+	// 消息格式
+	var message={
+		"type":1,
+		"source_account":user_info.user_account,
+		"target_account":"",
+		"message":""
+	}
+//	alert(JSON.stringify(message));//检测发送信息
+	window.onload=function(){
+		// 设置聊天框架
+		setIframe();
+		//获取好友，群组信息
+		updateFriendList();
+		updateGroupList();
+		if(!ws)
+		{	//ws=new WebSocket("ws://121.40.165.18:8088");
+			ws = new WebSocket('ws://127.0.0.1:18669');
+			alert("开始连接");
+			// ws = new WebSocket('ws://1709a70f81.iask.in:18669');
+		}	
+		else
+			alert("不要重复连接");
+		ws.onopen=function(){
+			alert("连接成功！");
+			window.localStorage.recvMessageJson='[]';
+			window.localStorage.chatObjects='[]';
+			var msg=message;
+			msg.type=1;
+			msg.target_account="";
+			msg.message="1";
+			msg=JSON.stringify(msg)+"*";
+			ws.send(msg);
+		}
+		ws.onmessage=function(e){
+			//system_window.innerHTML+="<li>"+e.data+"</li>";
+			var msg=JSON.parse(e.data);
+			if(msg.type== 1)
+			{
+				
+				updateOnlineState(msg.source_account,true);
+				alert(msg.source_account+"上线了");
+			}
+			if(msg.type== 2)
+			{
+				
+				updateOnlineState(msg.source_account,false);
+				alert(msg.source_account+"下线了");
+			}
+			if(msg.type== 3)
+			{
+				recvMessage(msg);
+			}
+			if(msg.type== 4)
+			{
+				recvMessage(msg);
+			}
+			if(msg.type== 5)
+			{
+				var responseMessage={
+					"type":6,
+			 		"source_account":user_info.user_account,
+			 		"target_account":msg.source_account
+				}
+				if(confirm("是否允许账号："+msg.source_account+"添加您为好友？"))
+				{
+					agreeFriendRequest(msg);
+				}
+				else
+				{
+					responseMessage.type=7;
+					responseMessage=JSON.stringify(responseMessage)+"*";
+					ws.send(responseMessage);
+				}
+			}
+			if(msg.type==6)
+			{
+				alert(msg.source_account+"同意加您为好友！");
+				updateFriendList();
+				updateOnlineState(msg.source_account,true);
+			}
+			if(msg.type==7)
+			{
+				alert(msg.source_account+"拒绝加您为好友！");	
+			}
+			if(msg.type==8)
+			{
+				alert("账号："+msg.source_account+"把您删除了");
+				updateFriendList();
+			}
+			if(msg.type==9)
+			{
+				var responseMessage={
+					"type":10,
+			 		"source_account":user_info.user_account,
+			 		"target_account":msg.source_account,
+			 		"group_account":msg.group_account
+				}
+				if(confirm("是否同意"+msg.source_name+"（"+msg.source_account+")加入您的群（"+msg.group_account+"）?"))
+				{
+					agreeGroupRequest(msg);
+				}
+				else
+				{
+					responseMessage.type=11;
+					responseMessage=JSON.stringify(responseMessage)+"*";
+					ws.send(responseMessage);
+				}
+			}
+			if(msg.type==10)
+			{
+				alert("群主("+msg.source_account+")同意您入群("+msg.group_account+")");
+				updateGroupList();
+			}
+			if(msg.type==11)
+			{
+				alert("群主("+msg.source_account+")拒绝您入群("+msg.group_account+")！");
+			}
+			if(msg.type==12)
+			{
+				alert("群主（账号："+msg.source_account+")解散了\n群（账号："+msg.group_account+")");
+				setTimeout(function(){
+					updateGroupList();
+				},1500);
+			}
+			if(msg.type==13)
+			{
+				alert(msg.source_name+"("+msg.source_account+")退出了群("+msg.group_account+")");
+				updateGroupList();
+			}
+			if(msg.type==14)
+			{
+				alert(msg.source_name+"("+msg.source_account+")把您剔出了群("+msg.group_account+")");
+				updateGroupList();
+			}
+			if(msg.type==15)
+			{
+				updateOnlineState(msg.source_account,true);
+			}
+			if(msg.type== 20)
+				alert("不要重复登陆您的账号\n已经断开了连接");
+		}
+		ws.onerror=function(e){
+			alert("连接错误");
+		}
+		ws.onclose=function(e){
+			ws=null;
+			alert("连接关闭");
+		}
+		
+	}
+	// disconnect.onclick=function(){
+	// 	var msg=message;
+	// 		msg.type=2;
+	// 		msg.target_account="";
+	// 		msg.message="2";
+	// 		msg=JSON.stringify(msg);
+	// 	ws.send(msg+"*");
+	// 	ws.close();
+	// 	alert("取消连接");
+	// };
+	 
+	setInterval(function(){
+		if(window.localStorage.send_friend_state=='true')
+		{
+			window.localStorage.send_friend_state='false';
+			sendMessage(window.localStorage.send_friend_message,'3');
+		}
+		if(window.localStorage.send_group_state=="true")
+		{
+			window.localStorage.send_group_state="false";
+			alert(window.localStorage.send_group_message);
+			sendMessage(window.localStorage.send_group_message,'4');
+		}
+		if(window.localStorage.exit_state=="true")
+		{
+			window.localStorage.exit_state='false';
+			sendMessage("下线了",'2');
+			ws.close();
+			window.location.href='html/login.html';
+		}
+		if(window.localStorage.createGroupState=="true")
+		{
+			window.localStorage.createGroupState="false";
+			createGroup(window.localStorage.Input1,window.localStorage.Input2);
+		}
+		if(window.localStorage.addGroupState=="true")
+		{
+			window.localStorage.addGroupState="false";
+			addGroup(window.localStorage.Input1);
+		}
+		if(window.localStorage.deleteGroupState=="true")
+		{
+			window.localStorage.deleteGroupState="false";
+			deleteGroup(window.localStorage.Input1);
+		}
+		if(window.localStorage.exitGroupState=="true")
+		{
+			window.localStorage.exitGroupState="false";
+			exitGroup(window.localStorage.Input1);
+		}
+		if(window.localStorage.deleteGroupMemberState=="true")
+		{
+			window.localStorage.deleteGroupMemberState="false";
+			deleteGroupMember(window.localStorage.Input1,window.localStorage.Input2);
+		}
+		if(window.localStorage.addFriendState=="true")
+		{
+			window.localStorage.addFriendState="false";
+			addFriend(window.localStorage.Input1);
+		}
+		if(window.localStorage.deleteFriendState=="true")
+		{
+			window.localStorage.deleteFriendState="false";
+			deleteFriend(window.localStorage.Input1);
+		}
+		if(window.localStorage.recv_friend_state=="true")
+		{
+			window.localStorage.recv_friend_state="false";
+
+		}	
+	},100);
+</script>
+</html>

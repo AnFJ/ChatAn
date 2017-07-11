@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+	<meta charset="utf-8">
+	<meta name="viewport" content="initial-scale=1, maximum-scale=1">
+	<link rel="stylesheet" type="text/css" href="css/global_size.css">
+	<link rel="stylesheet" type="text/css" href="css/main.css">
+<html>
+<script type="text/javascript" src='script/global_data.js'></script>
+<head>
+	<title></title>
+</head>
+<body>
+<div id="top_nav" class="top_nav">
+	<img src="image/user_display_photo/udp.jpg">
+	<h2 id='top_nav_title'>消息通知	</h2>	
+</div>
+<div id="iframe_div" class="iframe">
+	<iframe id='iframe_middle'  src="html/notice.html"></iframe>
+</div>
+<div id="bottom_nav" class="bottom_nav">
+	<div class="bnav_child"  id='main_icon1' onclick="changeFocusIcon(this.id)">
+		<img src="image/icon/notice_focus.png">
+		<h3 style="color: #1296db;">消息</h3>
+		<img style="display: none;" id='notice_number_icon' class="notice_number" src="image/notice_number/03.png">
+		
+	</div>
+	<div class="bnav_child" id='main_icon2' onclick="changeFocusIcon(this.id)">
+		<img  src="image/icon/friend_chat.png">
+		<h3>好友</h3>
+	</div>
+	<div class="bnav_child" id='main_icon3' onclick="changeFocusIcon(this.id)">
+		<img src="image/icon/group_chat.png">
+		<h3>群</h3>
+	</div>
+	<div class="bnav_child" id='main_icon4' onclick="changeFocusIcon(this.id)">
+		<img src="image/icon/my_info.png">
+		<h3>我的</h3>
+	</div>
+</div>
+</body>
+<script type="text/javascript" src='script_ui/main_ui.js'></script>
+<script type="text/javascript" src='script/update_chat.js'></script>
+<script type="text/javascript">
+	//获取登录信息
+	// var user_info=JSON.parse(window.localStorage.user_info);
+	
+	// 主窗口界面
+	var iframeDiv=document.getElementById('iframe_div');
+	
+	window.onload=function(){
+		window.localStorage.target_friend='{"friend_account":"6"}';
+		window.localStorage.target_group='{"group_account":"null"}';
+		getIframeHeight('top_nav','iframe_middle','bottom_nav');
+		showButtomMessageIcon();
+		setInterval(function(){
+			if(window.localStorage.recv_state=="true")
+			{
+				window.localStorage.recv_state="false";
+				showButtomMessageIcon();
+			}
+			if(window.localStorage.target_friend_state=="true")
+			{
+				window.localStorage.target_friend_state="false";
+				window.location.href='html/chat_window.html';
+			}
+			if(window.localStorage.target_group_state=="true")
+			{
+				window.localStorage.target_group_state="false";
+				window.location.href='html/group_chat_window.html';
+			}
+		},100);
+	}
+	window.onresize=function(){
+		getIframeHeight('top_nav','iframe_middle','bottom_nav');
+	}
+	
+</script>
+</html>

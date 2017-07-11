@@ -1,0 +1,95 @@
+//用户登录信息
+localStorage.user_info={
+	"user_id":"19",
+	"user_account":"1",
+	"user_name":"\u5c0f\u4e00",
+	"user_password":"1",
+	"login_date":"2017-04-29 02:07:09",
+	"user_info":null
+}
+//用户好友列表
+localStorage.friend_list=[
+	{
+		"friend_account":"3",
+		"friend_info":
+			{
+				"user_name":"\u5c0f\u4e09",
+				"user_info":null
+			}
+		"friend_state":"online"
+	},
+	{
+		"friend_account":"4",
+		"friend_info":
+			{
+				"user_name":"\u5c0f\u56db",
+				"user_info":null
+			}
+		"friend_state":"offline"
+	}
+];
+//目标好友列表
+localStorage.target_friend={
+	"friend_account":"6",
+	"friend_info":
+	{
+		"user_name":"小六",
+		"user_info":null
+	},
+	"friend_state":"offline"
+}
+//群列表
+localStorage.group_list=[
+	{
+		"group_account":"3",
+		"group_info":
+			{
+				"group_id":"16",
+				"group_account":"3",
+				"group_name":"\u4e09\u7fa4",
+				"group_lord":"1",
+				"group_info":null,
+				"create_date":"2017-04-13 15:48:07"
+			}
+		"group_members":[["8"],["1"]]
+	},
+	{
+		"group_account":"2",
+		"group_info":
+			{
+				"group_id":"17",
+				"group_account":"2",
+				"group_name":"\u4e8c\u7fa4",
+				"group_lord":"1",
+				"group_info":null,
+				"create_date":"2017-04-13 15:49:01"
+			}
+	},
+	{
+		"group_account":"1",
+		"group_info":
+			{
+				"group_id":"19",
+				"group_account":"1",
+				"group_name":"\u4e00\u7fa4",
+				"group_lord":"8",
+				"group_info":null,
+				"create_date":"2017-04-13 17:12:40"
+			}
+	}
+]
+//目标群列表
+localStorage.target_group={
+		"group_account":"3",
+		"group_info":
+			{
+				"group_id":"16",
+				"group_account":"3",
+				"group_name":"\u4e09\u7fa4",
+				"group_lord":"1",
+				"group_info":null,
+				"create_date":"2017-04-13 15:48:07"
+			}
+		"group_members":[["8"],["1"]]
+	}
+
